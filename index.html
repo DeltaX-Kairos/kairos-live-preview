@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>KAIROS // LIVE — preview</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #07080b; }
+.kl { min-height: 100dvh; background: #07080b; color: #e8e4d8; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; overflow: hidden; }
+.kl canvas { display: block; width: 100%; height: 100dvh; background: #07080b; touch-action: none; }
+.kl-top, .kl-dock, .kl-side { position: fixed; z-index: 2; pointer-events: none; }
+.kl-top { top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; justify-content: space-between; gap: 12px; }
+.kl-brand, .kl-read, .kl-dock, .kl-side, .kl-chip { pointer-events: auto; }
+.kl-brand { max-width: 360px; }
+.kl-brand p { margin: 6px 0 0; color: #b7b09f; font-size: 12px; line-height: 1.4; }
+.kl-kicker { letter-spacing: 0.22em; font-size: 10px; color: #8f866f; }
+.preview-flag { display: inline-block; margin-left: 8px; padding: 2px 6px; border: 1px solid rgba(214,196,140,.35); font-size: 9px; letter-spacing: .14em; color: #d6c48c; }
+.kl-brand h1 { margin: 4px 0 0; font-size: 24px; font-weight: 560; letter-spacing: 0.08em; }
+.kl-read { display: grid; grid-template-columns: repeat(5, minmax(56px, 1fr)); gap: 6px; }
+.kl-read div, .kl-chip, .kl-dock, .kl-side { background: rgba(12,13,16,.72); border: 1px solid rgba(214,196,140,.18); backdrop-filter: blur(14px); }
+.kl-read div { padding: 7px 8px; }
+.kl-read span, .kl-side label span { display: block; font-size: 10px; letter-spacing: 0.16em; color: #8f866f; }
+.kl-read strong { display: block; margin-top: 3px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.kl-dock { left: 12px; right: 12px; bottom: max(10px, env(safe-area-inset-bottom)); padding: 12px 14px 10px; }
+.kl-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kl-sliders label { display: block; font-size: 12px; }
+.kl-sliders em { float: right; font-style: normal; color: #d6c48c; }
+.kl-sliders input, .kl-side input[type=range] { width: 100%; accent-color: #d6c48c; }
+.kl-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.kl-chip, .kl-side button { border: 1px solid rgba(214,196,140,.28); background: transparent; color: #e8e4d8; padding: 8px 10px; font-size: 11px; letter-spacing: 0.12em; cursor: pointer; }
+.kl-chip.is-on, .kl-side button.is-on { background: #d6c48c; color: #141208; }
+.kl-side { display: none; top: auto; bottom: 168px; right: 12px; width: min(320px, calc(100vw - 24px)); padding: 12px; max-height: 42dvh; overflow: auto; }
+.kl-side.is-open { display: block; }
+.kl-side h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.18em; }
+.kl-side label { display: block; margin: 10px 0; font-size: 12px; }
+.kl-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
+.kl-note { margin-top: 10px; color: #9b9483; font-size: 11px; line-height: 1.4; }
+@media (min-width: 821px) {
+  .kl-side { display: block; top: 92px; bottom: auto; max-height: calc(100dvh - 220px); }
+  .kl-brand h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="kl" id="app">
+  <canvas id="view"></canvas>
+  <header class="kl-top">
+    <div class="kl-brand">
+      <div class="kl-kicker">DELTAX RESEARCH SYSTEM <span class="preview-flag">PREVIEW</span></div>
+      <h1>KAIROS // LIVE</h1>
+      <p id="hint">You control the conditions. Kairos controls the car.</p>
+    </div>
+    <div class="kl-read" aria-label="Live telemetry">
+      <div><span>SPEED</span><strong id="tSpeed">-</strong></div>
+      <div><span>SLIP</span><strong id="tSlip">-</strong></div>
+      <div><span>PHASE</span><strong id="tPhase">-</strong></div>
+      <div><span>LAP</span><strong id="tLap">-</strong></div>
+      <div><span>CONT</span><strong id="tCont">-</strong></div>
+    </div>
+  </header>
+  <aside class="kl-side" id="side">
+    <h2>COMMAND CONSOLE</h2>
+    <div class="kl-row" id="cams"></div>
+    <label><span id="lPower">POWER 50</span><input id="power" type="range" min="0" max="100" value="50"></label>
+    <label><span id="lMass">MASS 50</span><input id="mass" type="range" min="0" max="100" value="50"></label>
+    <label><span id="lGrip">GRIP 70</span><input id="grip" type="range" min="0" max="100" value="70"></label>
+    <label><span id="lBias">REAR BIAS 60</span><input id="rearBias" type="range" min="35" max="80" value="60"></label>
+    <div class="kl-row" id="surfaces"></div>
+    <div class="kl-row" id="tracks"></div>
+    <p class="kl-note" id="note"></p>
+    <div class="kl-row">
+      <button id="reset">RESET</button>
+      <button id="store">STORE RUN</button>
+      <button id="pause">PAUSE</button>
+    </div>
+    <div class="kl-compare" id="runs"></div>
+  </aside>
+  <footer class="kl-dock">
+    <div class="kl-sliders">
+      <label>PACE <em id="paceEm">62 / cautious-maximum</em><input id="pace" type="range" min="0" max="100" value="62"></label>
+      <label>ATTACK <em id="attackEm">42 / smooth-send it</em><input id="attack" type="range" min="0" max="100" value="42"></label>
+    </div>
+    <div class="kl-row" id="presets"></div>
+  </footer>
+</div>
+<script>
+const DT=1/120, CONTROL_EVERY=4;
+const DEFAULT_CONTROLS={pace:62,attack:42,power:50,mass:50,grip:70,rearBias:60,surface:"dry",trackId:"circuit_one",style:"FLOW",vehicle:"BALANCED"};
+const STYLE_PRESETS={CRUISE:{pace:28,attack:18},FLOW:{pace:62,attack:42},QUALIFY:{pace:88,attack:36},SHOWBOAT:{pace:54,attack:86},SEND_IT:{pace:96,attack:94}};
+const VEHICLE_PRESETS={BALANCED:{power:50,mass:50,grip:70,rearBias:60},HIGH_POWER:{power:92,mass:46,grip:68,rearBias:64},LOW_GRIP:{power:55,mass:50,grip:28,rearBias:62},HEAVY:{power:58,mass:88,grip:72,rearBias:58}};
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function wrapPi(a){while(a>Math.PI)a-=Math.PI*2;while(a<-Math.PI)a+=Math.PI*2;return a;}
+function sanitizeControls(raw){return{pace:clamp(+raw.pace||0,0,100),attack:clamp(+raw.attack||0,0,100),power:clamp(+raw.power||0,0,100),mass:clamp(+raw.mass||0,0,100),grip:clamp(+raw.grip||0,0,100),rearBias:clamp(+raw.rearBias||60,35,80),surface:raw.surface==="wet"||raw.surface==="low"?raw.surface:"dry",trackId:raw.trackId==="foundation_loop"?"foundation_loop":"circuit_one",style:raw.style||"CUSTOM",vehicle:raw.vehicle||"CUSTOM"};}
+function strategyFromControls(c){const p=c.pace/100,a=c.attack/100;return{targetSpeedMps:lerp(1.15,3.72,p),entrySpeedMps:lerp(1.15,3.72,p)*lerp(0.72,0.96,a),targetSlipRad:((12+a*36)*Math.PI)/180,lineOffsetM:lerp(0.02,0.22,a)*(a>0.55?1:0.6),throttleCommit:lerp(0.42,1,0.35*p+0.65*a),brakeMargin:lerp(0.38,0.08,p),recoveryYawThresh:lerp(4.2,7.8,a),riskTolerance:clamp(0.2+a*0.7+p*0.15,0,1)};}
+function plantFromControls(c){const surfaceMul=c.surface==="wet"?0.62:c.surface==="low"?0.74:1;const gripMul=lerp(0.42,1.08,c.grip/100)*surfaceMul;const massKg=lerp(0.72,1.28,c.mass/100);const torque=lerp(0.14,0.34,c.power/100);const rearFrac=c.rearBias/100;return{massKg,frontStaticFraction:1-rearFrac,wheelbaseM:0.257,yawInertia:0.0075*(massKg/0.92),wheelRadiusM:0.032,maxSteerRad:55*Math.PI/180,steerRateRadS:620*Math.PI/180,maxMotorTorqueNm:torque,maxBrakeTorqueNm:0.42,rollingResistanceN:0.16*(massKg/0.92),aeroDrag:0.035,frontMu:0.78*gripMul,rearMu:0.61*gripMul*lerp(0.92,1.08,rearFrac),frontCornering:7.8*gripMul,rearCornering:5.2*gripMul};}
+function samplePath(raw,widthFn){const closed=raw.concat([raw[0]]);const dense=[];for(let i=0;i<closed.length-1;i++){const a=closed[i],b=closed[i+1];const d=Math.hypot(b[0]-a[0],b[1]-a[1]);const n=Math.max(4,Math.ceil(d/0.18));for(let k=0;k<n;k++){const t=k/n;dense.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t]);}}const pts=[];let s=0;for(let i=0;i<dense.length;i++){const prev=dense[(i-1+dense.length)%dense.length],cur=dense[i],next=dense[(i+1)%dense.length];const dx=next[0]-prev[0],dy=next[1]-prev[1];const len=Math.hypot(dx,dy)||1;const tx=dx/len,ty=dy/len;s+=Math.hypot(cur[0]-prev[0],cur[1]-prev[1]);const ux=next[0]-cur[0],uy=next[1]-cur[1],vx=cur[0]-prev[0],vy=cur[1]-prev[1];const cross=vx*uy-vy*ux;const l1=Math.hypot(vx,vy)||1,l2=Math.hypot(ux,uy)||1;const kappa=cross/(l1*l2*((l1+l2)*0.5));pts.push({x:cur[0],y:cur[1],tx,ty,nx:-ty,ny:tx,kappa,s,width:widthFn(i/dense.length)});}return pts;}
+function circuitOneRaw(){return[[0,0],[6.2,0.15],[10.4,1.1],[12.6,3.4],[12.2,6.4],[9.4,8.1],[6.6,7.4],[4.8,5.2],[3.2,4.8],[1.2,6.6],[-1.8,8.4],[-5.4,8],[ -8.2,5.6],[-8.8,2.2],[-6.6,-0.4],[-3.2,-0.2]];}
+function foundationRaw(){const out=[];for(let i=0;i<48;i++){const a=(i/48)*Math.PI*2;out.push([Math.cos(a)*3.6,Math.sin(a)*3.6]);}return out;}
+function buildTrack(id){const raw=id==="foundation_loop"?foundationRaw():circuitOneRaw();const widthFn=id==="foundation_loop"?()=>2.2:u=>1.18+0.22*Math.sin(u*Math.PI*4);const points=samplePath(raw,widthFn);const p0=points[0];return{id,length:points[points.length-1].s||1,points,start:{x:p0.x,y:p0.y,yaw:Math.atan2(p0.ty,p0.tx)}};}
+function nearestOnTrack(track,x,y){let best=0,bestD=Infinity;for(let i=0;i<track.points.length;i++){const p=track.points[i];const d=(p.x-x)**2+(p.y-y)**2;if(d<bestD){bestD=d;best=i;}}const p=track.points[best];const offset=(x-p.x)*p.nx+(y-p.y)*p.ny;return{index:best,point:p,offset,progress:p.s/track.length,ahead:track.points[(best+8)%track.points.length],later:track.points[(best+18)%track.points.length],inside:Math.abs(offset)<p.width*0.5};}
+function createState(track){return{x:track.start.x,y:track.start.y,yaw:track.start.yaw,vx:1.4,vy:0,yawRate:0,steer:0,throttle:0.2,brake:0,slipRad:0,speed:1.4,progress:0,lap:0,sector:1,lastProgress:0,stalledS:0,offTrackS:0,contactCount:0,spinCount:0,recoverS:0,phase:"SETUP",continuity:1,lastContactS:99};}
+function tireForce(slip,load,mu,stiffness){const cap=mu*load,raw=stiffness*slip,mag=Math.abs(raw);if(mag<=cap)return raw;return Math.sign(raw)*(cap+(mag-cap)/(1+(mag-cap)/(cap+0.01)));}
+function stepPhysics(state,cmd,plant,track,dt){const next={...state};const steerTarget=clamp(cmd.steer,-plant.maxSteerRad,plant.maxSteerRad);const maxDs=plant.steerRateRadS*dt;next.steer+=clamp(steerTarget-next.steer,-maxDs,maxDs);next.throttle=clamp(cmd.throttle,-0.35,1);next.brake=clamp(cmd.brake,0,1);const c=Math.cos(next.yaw),s=Math.sin(next.yaw);const ux=next.vx*c+next.vy*s,uy=-next.vx*s+next.vy*c;const lf=plant.wheelbaseM*(1-plant.frontStaticFraction),lr=plant.wheelbaseM*plant.frontStaticFraction;const g=9.81,fzF=plant.massKg*g*plant.frontStaticFraction,fzR=plant.massKg*g*(1-plant.frontStaticFraction);const vfY=uy+next.yawRate*lf,vrY=uy-next.yawRate*lr;const aF=Math.atan2(vfY,Math.max(0.25,ux))-next.steer;const aR=Math.atan2(vrY,Math.max(0.25,ux));next.slipRad=aR;const FyF=-tireForce(aF,fzF,plant.frontMu,plant.frontCornering);const FyR=-tireForce(aR,fzR,plant.rearMu,plant.rearCornering);const drive=next.throttle>=0?(next.throttle*plant.maxMotorTorqueNm)/plant.wheelRadiusM:(next.throttle*plant.maxBrakeTorqueNm)/plant.wheelRadiusM;const brakeF=-(next.brake*plant.maxBrakeTorqueNm)/plant.wheelRadiusM;let FxR=clamp(drive+brakeF,-plant.rearMu*fzR,plant.rearMu*fzR);const comb=Math.hypot(FxR/Math.max(0.01,plant.rearMu*fzR),FyR/Math.max(0.01,plant.rearMu*fzR));if(comb>1)FxR/=comb;const drag=-Math.sign(ux||1)*(plant.rollingResistanceN+plant.aeroDrag*ux*ux);const Fx=FxR+drag,Fy=FyF*Math.cos(next.steer)+FyR;const axBody=Fx/plant.massKg+uy*next.yawRate,ayBody=Fy/plant.massKg-ux*next.yawRate;const yawAcc=(FyF*Math.cos(next.steer)*lf-FyR*lr+FxR*0.02)/plant.yawInertia;const axW=axBody*c-ayBody*s,ayW=axBody*s+ayBody*c;next.vx+=axW*dt;next.vy+=ayW*dt;next.yawRate+=yawAcc*dt;next.yaw=wrapPi(next.yaw+next.yawRate*dt);next.x+=next.vx*dt;next.y+=next.vy*dt;next.speed=Math.hypot(next.vx,next.vy);const loc=nearestOnTrack(track,next.x,next.y);const half=loc.point.width*0.5;if(Math.abs(loc.offset)>half){const pen=Math.abs(loc.offset)-half,sign=Math.sign(loc.offset)||1;next.x-=loc.point.nx*sign*pen;next.y-=loc.point.ny*sign*pen;const vn=next.vx*loc.point.nx+next.vy*loc.point.ny;next.vx-=loc.point.nx*vn*1.35;next.vy-=loc.point.ny*vn*1.35;next.lastContactS=0;if(pen>0.04)next.contactCount+=1;next.offTrackS+=dt;}else{next.offTrackS=Math.max(0,next.offTrackS-dt*2);next.lastContactS+=dt;}const wrapped=loc.progress;if(wrapped+0.7<next.lastProgress)next.lap+=1;next.lastProgress=wrapped;next.progress=wrapped;next.sector=Math.min(4,1+Math.floor(wrapped*4));if(next.speed<0.18)next.stalledS+=dt;else next.stalledS=0;if(Math.abs(next.yawRate)>8.5&&next.speed<0.7)next.spinCount+=1;const headingErr=Math.abs(wrapPi(Math.atan2(loc.point.ty,loc.point.tx)-next.yaw));const lineErr=Math.min(1,Math.abs(loc.offset)/Math.max(0.2,half));next.continuity=clamp(next.continuity*0.98+0.02*(1-0.45*lineErr-(0.25*headingErr)/Math.PI),0,1);if(next.lastContactS<0.4)next.continuity*=0.92;return next;}
+function choosePhase(state,env,locOffset,kappa){if(state.recoverS>0||state.stalledS>0.55||Math.abs(state.yawRate)>env.recoveryYawThresh)return state.stalledS>1.2?"CONTROL_LOST":"RECOVER";const slip=Math.abs(state.slipRad),speed=state.speed;if(speed<env.entrySpeedMps*0.72)return"SETUP";if(slip<env.targetSlipRad*0.35&&Math.abs(kappa)>0.12)return"ENTRY";if(slip<env.targetSlipRad*0.72&&speed>env.entrySpeedMps*0.8)return"INITIATE";if(Math.sign(kappa)!==0&&Math.sign(state.slipRad)!==0&&Math.sign(kappa)!==Math.sign(-state.slipRad)&&slip>0.18)return"TRANSITION";if(slip>env.targetSlipRad*0.55)return"DRIFT";if(Math.abs(locOffset)>0.28)return"STABILIZE";return speed>env.targetSpeedMps*0.9?"DRIFT":"ENTRY";}
+function kairosControl(state,env,track,plant){const loc=nearestOnTrack(track,state.x,state.y);const phase=choosePhase(state,env,loc.offset,loc.ahead.kappa);const look=phase==="ENTRY"||phase==="SETUP"?loc.ahead:loc.later;const pathYaw=Math.atan2(look.ty,look.tx);const yawErr=wrapPi(pathYaw-state.yaw);const desiredOffset=-Math.sign(look.kappa||state.yawRate||1)*env.lineOffsetM;const offsetErr=loc.offset-desiredOffset;const slipErr=Math.abs(state.slipRad)-env.targetSlipRad;const speedTarget=phase==="ENTRY"?env.entrySpeedMps:env.targetSpeedMps;const speedErr=speedTarget-state.speed;let steer=0,throttle=0,brake=0;if(phase==="RECOVER"||phase==="CONTROL_LOST"){steer=clamp(-state.yawRate*0.12-yawErr*0.7-offsetErr*0.8,-plant.maxSteerRad,plant.maxSteerRad);throttle=state.speed>0.6?-0.12:0.18;brake=state.speed>1.4?0.35:0;}else if(phase==="SETUP"){steer=clamp(yawErr*0.9-offsetErr*0.55,-0.4,0.4);throttle=0.45*env.throttleCommit;}else if(phase==="ENTRY"){steer=clamp(yawErr*1.15-offsetErr*0.7+Math.sign(look.kappa)*0.12,-plant.maxSteerRad,plant.maxSteerRad);if(speedErr<0)brake=clamp(-speedErr*env.brakeMargin*0.6,0,0.7);else throttle=clamp(speedErr*0.35,0,0.55);}else if(phase==="INITIATE"){const kick=Math.sign(look.kappa||1);steer=clamp(kick*lerp(0.22,0.55,env.riskTolerance)+yawErr*0.25,-plant.maxSteerRad,plant.maxSteerRad);throttle=clamp(0.55+env.throttleCommit*0.4,0,1);brake=clamp((env.targetSlipRad-0.25)*0.15,0,0.28);}else if(phase==="DRIFT"){const counter=-Math.sign(state.slipRad||state.yawRate||1);steer=clamp(counter*(0.18+Math.abs(slipErr)*0.8)+yawErr*0.35-offsetErr*0.45,-plant.maxSteerRad,plant.maxSteerRad);throttle=clamp(0.42+env.throttleCommit*0.45-Math.max(0,slipErr)*0.8+Math.max(0, -slipErr)*0.35,0.08,1);}else if(phase==="TRANSITION"){steer=clamp(Math.sign(look.kappa||1)*0.34+yawErr*0.5,-plant.maxSteerRad,plant.maxSteerRad);throttle=clamp(env.throttleCommit*0.55,0.12,0.8);}else{steer=clamp(yawErr*0.8-offsetErr*0.9-state.yawRate*0.08,-plant.maxSteerRad,plant.maxSteerRad);throttle=clamp(0.3+speedErr*0.2,0,0.7);}return{cmd:{steer,throttle,brake},phase};}
+class KairosRuntime{constructor(controls={},seed=1){this.seed=seed;this.controls=sanitizeControls({...DEFAULT_CONTROLS,...controls});this.track=buildTrack(this.controls.trackId);this.state=createState(this.track);this.env=strategyFromControls(this.controls);this.plant=plantFromControls(this.controls);this.command={steer:0,throttle:0.2,brake:0};this.time=0;this.steps=0;this.paused=false;this.lapClock=0;this.lastLapTime=null;this.lastLap=0;this.recoveries=0;this.trail=[];this.skids=[];this.samples=[];}setLiveControls(next){const prev=this.controls.trackId;this.controls=sanitizeControls({...this.controls,...next});this.env=strategyFromControls(this.controls);this.plant=plantFromControls(this.controls);if(this.controls.trackId!==prev)this.reset();}reset(){this.track=buildTrack(this.controls.trackId);this.state=createState(this.track);this.command={steer:0,throttle:0.2,brake:0};this.time=0;this.steps=0;this.lapClock=0;this.lastLapTime=null;this.lastLap=0;this.recoveries=0;this.trail=[];this.skids=[];this.samples=[];}step(dt=DT){if(this.paused)return;if(this.steps%CONTROL_EVERY===0){const decided=kairosControl(this.state,this.env,this.track,this.plant);this.command=decided.cmd;const was=this.state.phase==="RECOVER"||this.state.phase==="CONTROL_LOST";this.state.phase=decided.phase;if(!was&&(this.state.phase==="RECOVER"||this.state.phase==="CONTROL_LOST")){this.recoveries+=1;this.state.recoverS=0.8;}}if(this.state.recoverS>0)this.state.recoverS=Math.max(0,this.state.recoverS-dt);this.state=stepPhysics(this.state,this.command,this.plant,this.track,dt);this.time+=dt;this.steps+=1;this.lapClock+=dt;if(this.state.lap>this.lastLap){this.lastLapTime=this.lapClock;this.lapClock=0;this.lastLap=this.state.lap;}if(this.steps%3===0){this.trail.push({x:this.state.x,y:this.state.y});if(this.trail.length>420)this.trail.shift();if(Math.abs(this.state.slipRad)>0.18){this.skids.push({x:this.state.x,y:this.state.y,life:1});if(this.skids.length>900)this.skids.shift();}}for(const skid of this.skids)skid.life=Math.max(0,skid.life-dt*0.045);if(this.steps%6===0){this.samples.push({speed:this.state.speed,slipDeg:this.state.slipRad*180/Math.PI});if(this.samples.length>240)this.samples.shift();}}summarize(label){const slips=this.samples.map(s=>Math.abs(s.slipDeg));const speeds=this.samples.map(s=>s.speed);const avg=xs=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:0;return{id:label,label,avgSpeed:avg(speeds),avgSlipDeg:avg(slips),continuity:this.state.continuity,pace:this.controls.pace,attack:this.controls.attack};}}
+const rt=new KairosRuntime(DEFAULT_CONTROLS,7);
+let camera="CHASE",advanced=false,runs=[];
+const cam={x:0,y:0,a:0,z:38};
+const canvas=document.getElementById("view");
+const ctx=canvas.getContext("2d");
+function fit(){const dpr=Math.min(2,window.devicePixelRatio||1);canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);} 
+function draw(){const w=canvas.width,h=canvas.height,st=rt.state;ctx.fillStyle="#07080b";ctx.fillRect(0,0,w,h);const look=camera==="TOP"?0:st.yaw-Math.PI/2;const targetZ=camera==="TOP"?22:camera==="CINEMATIC"?32:40;cam.x+=(st.x-cam.x)*0.08;cam.y+=(st.y-cam.y)*0.08;cam.a+=Math.atan2(Math.sin(look-cam.a),Math.cos(look-cam.a))*0.08;cam.z+=(targetZ-cam.z)*0.06;ctx.save();ctx.translate(w*0.5,h*(camera==="TOP"?0.5:0.62));ctx.rotate(camera==="TOP"?0:-cam.a);ctx.scale(cam.z,cam.z);ctx.translate(-cam.x,-cam.y);ctx.strokeStyle="rgba(214,196,140,0.13)";ctx.lineWidth=0.04;for(let x=-16;x<=16;x++){ctx.beginPath();ctx.moveTo(x,-16);ctx.lineTo(x,16);ctx.stroke();}for(let y=-16;y<=16;y++){ctx.beginPath();ctx.moveTo(-16,y);ctx.lineTo(16,y);ctx.stroke();}const pts=rt.track.points;ctx.fillStyle="#16140f";ctx.beginPath();pts.forEach((p,i)=>{const x=p.x+p.nx*p.width*0.5,y=p.y+p.ny*p.width*0.5;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});for(let i=pts.length-1;i>=0;i--){const p=pts[i];ctx.lineTo(p.x-p.nx*p.width*0.5,p.y-p.ny*p.width*0.5);}ctx.closePath();ctx.fill();ctx.strokeStyle="#d6c48c";ctx.lineWidth=0.035;ctx.stroke();ctx.strokeStyle="rgba(232,228,216,0.16)";ctx.setLineDash([0.16,0.18]);ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.stroke();ctx.setLineDash([]);for(const skid of rt.skids){if(skid.life<=0)continue;ctx.fillStyle=`rgba(40,36,28,${0.35*skid.life})`;ctx.beginPath();ctx.arc(skid.x,skid.y,0.045,0,Math.PI*2);ctx.fill();}ctx.strokeStyle="rgba(214,196,140,0.45)";ctx.lineWidth=0.03;ctx.beginPath();rt.trail.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.save();ctx.translate(st.x,st.y);ctx.rotate(st.yaw);ctx.fillStyle="#c4b48a";ctx.fillRect(-0.21,-0.09,0.42,0.18);ctx.fillStyle="#1b1a16";ctx.fillRect(0.08,-0.07,0.1,0.14);ctx.save();ctx.translate(0.12,-0.1);ctx.rotate(st.steer);ctx.fillStyle="#efe6c9";ctx.fillRect(-0.05,-0.02,0.1,0.04);ctx.restore();ctx.save();ctx.translate(0.12,0.1);ctx.rotate(st.steer);ctx.fillStyle="#efe6c9";ctx.fillRect(-0.05,-0.02,0.1,0.04);ctx.restore();ctx.fillRect(-0.16,-0.11,0.1,0.04);ctx.fillRect(-0.16,0.07,0.1,0.04);if(Math.abs(st.slipRad)>0.2){ctx.fillStyle="rgba(210,210,210,0.28)";ctx.beginPath();ctx.ellipse(-0.22,0.08,0.16,0.05,0,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.restore();}
+function fmt(n,d=1){return Number.isFinite(n)?n.toFixed(d):"-";}
+function renderHUD(){const st=rt.state;document.getElementById("tSpeed").textContent=fmt(st.speed*3.6,0);document.getElementById("tSlip").textContent=fmt(st.slipRad*180/Math.PI,0)+" deg";document.getElementById("tPhase").textContent=st.phase;document.getElementById("tLap").textContent=st.lap+" / S"+st.sector;document.getElementById("tCont").textContent=fmt(st.continuity*100,0);document.getElementById("hint").textContent=st.phase==="CONTROL_LOST"?"CONTROL LOST - recovering pose without a teleport.":st.phase==="RECOVER"?"RECOVERING - Kairos is restabilizing the car.":"You control the conditions. Kairos controls the car.";document.getElementById("note").textContent=`Target ${fmt(rt.env.targetSpeedMps,2)} m/s / slip ${fmt(rt.env.targetSlipRad*180/Math.PI,0)} deg / public envelope over the 920 g RMX plant.`;document.getElementById("paceEm").textContent=rt.controls.pace+" / cautious-maximum";document.getElementById("attackEm").textContent=rt.controls.attack+" / smooth-send it";document.getElementById("lPower").textContent="POWER "+rt.controls.power;document.getElementById("lMass").textContent="MASS "+rt.controls.mass;document.getElementById("lGrip").textContent="GRIP "+rt.controls.grip;document.getElementById("lBias").textContent="REAR BIAS "+rt.controls.rearBias;document.getElementById("pause").textContent=rt.paused?"RESUME":"PAUSE";}
+function chip(label,on,fn){const b=document.createElement("button");b.className="kl-chip"+(on?" is-on":"");b.textContent=label;b.onclick=fn;return b;}
+function refreshChips(){const presets=document.getElementById("presets");presets.innerHTML="";Object.keys(STYLE_PRESETS).forEach(id=>presets.appendChild(chip(id.replace("_"," "),rt.controls.style===id,()=>{Object.assign(rt.controls,STYLE_PRESETS[id],{style:id});syncSliders();rt.setLiveControls(rt.controls);refreshChips();})));Object.keys(VEHICLE_PRESETS).forEach(id=>presets.appendChild(chip(id.replace("_"," "),rt.controls.vehicle===id,()=>{Object.assign(rt.controls,VEHICLE_PRESETS[id],{vehicle:id});syncSliders();rt.setLiveControls(rt.controls);refreshChips();})));presets.appendChild(chip(advanced?"HIDE ADVANCED":"CAR / TRACK",advanced,()=>{advanced=!advanced;document.getElementById("side").classList.toggle("is-open",advanced);refreshChips();}));const cams=document.getElementById("cams");cams.innerHTML="";["CHASE","CINEMATIC","TOP"].forEach(m=>{const b=document.createElement("button");b.className=camera===m?"is-on":"";b.textContent=m;b.onclick=()=>{camera=m;refreshChips();};cams.appendChild(b);});const surfaces=document.getElementById("surfaces");surfaces.innerHTML="";["dry","low","wet"].forEach(s=>{const b=document.createElement("button");b.className=rt.controls.surface===s?"is-on":"";b.textContent=s.toUpperCase();b.onclick=()=>{rt.controls.surface=s;rt.setLiveControls(rt.controls);refreshChips();};surfaces.appendChild(b);});const tracks=document.getElementById("tracks");tracks.innerHTML="";[["circuit_one","CIRCUIT"],["foundation_loop","LOOP"]].forEach(([id,label])=>{const b=document.createElement("button");b.className=rt.controls.trackId===id?"is-on":"";b.textContent=label;b.onclick=()=>{rt.controls.trackId=id;rt.setLiveControls(rt.controls);refreshChips();};tracks.appendChild(b);});}
+function syncSliders(){["pace","attack","power","mass","grip","rearBias"].forEach(k=>{document.getElementById(k).value=rt.controls[k];});}
+["pace","attack","power","mass","grip","rearBias"].forEach(k=>{document.getElementById(k).addEventListener("input",e=>{rt.controls[k]=Number(e.target.value);if(k==="pace"||k==="attack")rt.controls.style="CUSTOM";else rt.controls.vehicle="CUSTOM";rt.setLiveControls(rt.controls);refreshChips();});});
+document.getElementById("reset").onclick=()=>rt.reset();
+document.getElementById("pause").onclick=()=>{rt.paused=!rt.paused;renderHUD();};
+document.getElementById("store").onclick=()=>{runs=[rt.summarize("R"+(runs.length+1)),...runs].slice(0,4);document.getElementById("runs").innerHTML=runs.map(r=>`<div><strong>${r.label}</strong><div>P${r.pace} A${r.attack}</div><div>avg ${fmt(r.avgSpeed,2)} m/s</div><div>slip ${fmt(r.avgSlipDeg,0)}</div><div>cont ${fmt(r.continuity*100,0)}</div></div>`).join("");};
+fit();refreshChips();window.addEventListener("resize",fit);
+let last=performance.now(),acc=0;
+function loop(now){requestAnimationFrame(loop);const raw=Math.min(0.05,(now-last)/1000);last=now;acc+=raw;while(acc>=DT){rt.step(DT);acc-=DT;}draw();if(rt.steps%8===0)renderHUD();}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
