@@ -1,1 +1,106 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><title>KAIROS LIVE 1:1</title></head><body><p>Use the source file.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>KAIROS // LIVE — 1:1 preview</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #07080b; }
+.kl { min-height: 100dvh; background: #07080b; color: #e8e4d8; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; overflow: hidden; }
+.kl canvas { display: block; width: 100%; height: 100dvh; background: #07080b; touch-action: none; }
+.kl-top, .kl-dock, .kl-side, .kl-resetbar, .kl-scale { position: fixed; z-index: 2; pointer-events: none; }
+.kl-top { top: max(10px, env(safe-area-inset-top)); left: 10px; right: 10px; display: flex; justify-content: space-between; gap: 10px; }
+.kl-brand, .kl-read, .kl-dock, .kl-side, .kl-chip, .kl-resetbar button { pointer-events: auto; }
+.kl-brand { max-width: 280px; }
+.kl-brand p { margin: 6px 0 0; color: #b7b09f; font-size: 12px; line-height: 1.35; }
+.kl-kicker { letter-spacing: 0.22em; font-size: 10px; color: #8f866f; }
+.preview-flag { display: inline-block; margin-left: 8px; padding: 2px 6px; border: 1px solid rgba(214,196,140,.35); font-size: 9px; letter-spacing: .14em; color: #d6c48c; }
+.kl-brand h1 { margin: 4px 0 0; font-size: 22px; font-weight: 560; letter-spacing: 0.08em; }
+.kl-read { display: grid; grid-template-columns: repeat(5, minmax(52px, 1fr)); gap: 6px; }
+.kl-read div, .kl-chip, .kl-dock, .kl-side, .kl-resetbar button, .kl-scale { background: rgba(12,13,16,.78); border: 1px solid rgba(214,196,140,.18); backdrop-filter: blur(14px); }
+.kl-read div { padding: 7px 8px; }
+.kl-read span, .kl-side label span { display: block; font-size: 10px; letter-spacing: 0.16em; color: #8f866f; }
+.kl-read strong { display: block; margin-top: 3px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.kl-resetbar { top: max(86px, calc(env(safe-area-inset-top) + 74px)); left: 10px; display: flex; flex-direction: column; gap: 6px; }
+.kl-resetbar button, .kl-side button, .kl-chip { border: 1px solid rgba(214,196,140,.28); background: rgba(12,13,16,.82); color: #e8e4d8; padding: 10px 12px; font-size: 11px; letter-spacing: 0.12em; cursor: pointer; }
+.kl-resetbar button { min-width: 118px; min-height: 44px; text-align: left; font-weight: 600; }
+.kl-resetbar button em { display: block; font-style: normal; font-weight: 400; font-size: 9px; letter-spacing: 0.14em; color: #9b9483; margin-top: 2px; }
+.kl-scale { top: max(86px, calc(env(safe-area-inset-top) + 74px)); right: 10px; padding: 8px 10px; font-size: 11px; letter-spacing: 0.08em; color: #d6c48c; }
+.kl-scale b { display: block; margin-top: 4px; height: 6px; width: 72px; border: 1px solid #d6c48c; border-top: 0; }
+.kl-dock { left: 10px; right: 10px; bottom: max(8px, env(safe-area-inset-bottom)); padding: 12px 14px 10px; }
+.kl-sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kl-sliders label { display: block; font-size: 12px; }
+.kl-sliders em { float: right; font-style: normal; color: #d6c48c; }
+.kl-sliders input, .kl-side input[type=range] { width: 100%; accent-color: #d6c48c; }
+.kl-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.kl-chip.is-on, .kl-side button.is-on, .kl-resetbar button.is-on { background: #d6c48c; color: #141208; }
+.kl-resetbar button.is-on em { color: #3b341c; }
+.kl-side { display: none; top: auto; bottom: 210px; right: 10px; width: min(320px, calc(100vw - 20px)); padding: 12px; max-height: 34dvh; overflow: auto; }
+.kl-side.is-open { display: block; }
+.kl-side h2 { margin: 0 0 8px; font-size: 12px; letter-spacing: 0.18em; }
+.kl-side label { display: block; margin: 10px 0; font-size: 12px; }
+.kl-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
+.kl-note { margin-top: 10px; color: #9b9483; font-size: 11px; line-height: 1.4; }
+@media (max-width: 820px) {
+  .kl-read { grid-template-columns: repeat(3, minmax(52px, 1fr)); }
+  .kl-brand { max-width: 46vw; }
+  .kl-brand h1 { font-size: 18px; }
+}
+@media (min-width: 821px) {
+  .kl-side { display: block; top: 92px; bottom: auto; max-height: calc(100dvh - 240px); }
+  .kl-brand h1 { font-size: 28px; }
+  .kl-resetbar { flex-direction: row; top: auto; bottom: 168px; left: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="kl" id="app">
+  <canvas id="view"></canvas>
+  <header class="kl-top">
+    <div class="kl-brand">
+      <div class="kl-kicker">DELTAX RESEARCH SYSTEM · 1:1 METERS <span class="preview-flag">PREVIEW</span></div>
+      <h1>KAIROS // LIVE</h1>
+      <p id="hint">1:1 RMX 2.5 · 0.92 kg · 257 mm WB.</p>
+    </div>
+    <div class="kl-read" aria-label="Live telemetry">
+      <div><span>SPEED</span><strong id="tSpeed">-</strong></div>
+      <div><span>SLIP</span><strong id="tSlip">-</strong></div>
+      <div><span>PHASE</span><strong id="tPhase">-</strong></div>
+      <div><span>LAP</span><strong id="tLap">-</strong></div>
+      <div><span>CONT</span><strong id="tCont">-</strong></div>
+    </div>
+  </header>
+  <div class="kl-resetbar">
+    <button id="resetCar">RESET CAR<em>pose only</em></button>
+    <button id="resetRun">RESET RUN<em>car + snapshots</em></button>
+    <button id="resetSetup">RESET SETUP<em>factory 1:1</em></button>
+    <button id="pause">PAUSE<em>live</em></button>
+  </div>
+  <div class="kl-scale">1.00 m world<b></b>420 mm chassis</div>
+  <aside class="kl-side" id="side">
+    <h2>COMMAND CONSOLE</h2>
+    <div class="kl-row" id="cams"></div>
+    <label><span id="lPower">POWER 50</span><input id="power" type="range" min="0" max="100" value="50"></label>
+    <label><span id="lMass">MASS 50 → 0.92 kg</span><input id="mass" type="range" min="0" max="100" value="50"></label>
+    <label><span id="lGrip">GRIP 70</span><input id="grip" type="range" min="0" max="100" value="70"></label>
+    <label><span id="lBias">REAR BIAS 60</span><input id="rearBias" type="range" min="35" max="80" value="60"></label>
+    <div class="kl-row" id="surfaces"></div>
+    <div class="kl-row" id="tracks"></div>
+    <p class="kl-note" id="note"></p>
+    <div class="kl-row"><button id="store">STORE RUN</button></div>
+    <div class="kl-compare" id="runs"></div>
+  </aside>
+  <footer class="kl-dock">
+    <div class="kl-sliders">
+      <label>PACE <em id="paceEm">62</em><input id="pace" type="range" min="0" max="100" value="62"></label>
+      <label>ATTACK <em id="attackEm">42</em><input id="attack" type="range" min="0" max="100" value="42"></label>
+    </div>
+    <div class="kl-row" id="presets"></div>
+  </footer>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>
